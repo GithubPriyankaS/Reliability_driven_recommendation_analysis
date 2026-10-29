@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consumer Complaint Intelligence Platform</title>
+  <!-- Chart.js Pinned CDN Version 4.4.1 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    /* CSS Variables for Light & Dark Themes */
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --header-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --primary-blue: #2563eb;
+      --primary-blue-hover: #1d4ed8;
+      --primary-blue-light: #eff6ff;
+      --alert-red: #dc2626;
+      --alert-red-light: #fef2f2;
+      --warning-amber: #d97706;
+      --warning-amber-light: #fffbeb;
+      --success-green: #16a34a;
+      --success-green-light: #f0fdf4;
+      --purple-accent: #7c3aed;
+      --purple-light: #f5f3ff;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+      --table-header-bg: #f8fafc;
+      --table-row-hover: #f1f5f9;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #0b1120;
+      --card-bg: #1e293b;
+      --header-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --primary-blue: #3b82f6;
+      --primary-blue-hover: #60a5fa;
+      --primary-blue-light: rgba(59, 130, 246, 0.15);
+      --alert-red: #ef4444;
+      --alert-red-light: rgba(239, 68, 68, 0.15);
+      --warning-amber: #f59e0b;
+      --warning-amber-light: rgba(245, 158, 11, 0.15);
+      --success-green: #22c55e;
+      --success-green-light: rgba(34, 197, 94, 0.15);
+      --purple-accent: #a78bfa;
+      --purple-light: rgba(167, 139, 250, 0.15);
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+      --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      --table-header-bg: #0f172a;
+      --table-row-hover: #273549;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Header */
+    header {
+      background: var(--header-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .title-area h1 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: var(--text-main);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: 1px solid var(--border-color);
+      background: var(--bg-color);
+      color: var(--text-main);
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      border-color: var(--primary-blue);
+      color: var(--primary-blue);
+    }
+
+    .btn-primary {
+      background: var(--primary-blue);
+      color: white;
+      border: none;
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-blue-hover);
+      color: white;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: var(--primary-blue-light);
+      color: var(--primary-blue);
+      border-radius: 20px;
+      font-size: 0.825rem;
+      font-weight: 600;
+      border: 1px solid var(--border-color);
+    }
+
+    .status-badge.active {
+      background: var(--success-green-light);
+      color: var(--success-green);
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* File Dropzone */
+    .file-dropzone {
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      background: var(--bg-color);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .file-dropzone:hover, .file-dropzone.dragover {
+      border-color: var(--primary-blue);
+      background: var(--primary-blue-light);
+    }
+
+    .file-dropzone input[type="file"] {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .dropzone-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .dropzone-sub {
+      font-size: 0.825rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Notification Banner */
+    .parse-banner {
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: var(--success-green-light);
+      border: 1px solid var(--success-green);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 0.875rem;
+    }
+
+    /* Cards & Grids */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-hover);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .edu-badge {
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: var(--purple-light);
+      color: var(--purple-accent);
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .edu-badge:hover {
+      background: var(--purple-accent);
+      color: white;
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+      gap: 14px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .kpi-card.highlight-blue {
+      border-left: 4px solid var(--primary-blue);
+    }
+
+    .kpi-card.highlight-red {
+      border-left: 4px solid var(--alert-red);
+      background: var(--alert-red-light);
+    }
+
+    .kpi-card.highlight-amber {
+      border-left: 4px solid var(--warning-amber);
+    }
+
+    .kpi-title {
+      font-size: 0.775rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .kpi-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.2;
+    }
+
+    .kpi-card.highlight-red .kpi-value {
+      color: var(--alert-red);
+    }
+
+    .kpi-sub {
+      font-size: 0.775rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Grid Layouts */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
+      gap: 24px;
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 300px;
+    }
+
+    /* Image Evidence Section Styling */
+    .image-funnel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .funnel-step {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 14px;
+      text-align: center;
+      position: relative;
+    }
+
+    .funnel-step-num {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--primary-blue);
+      text-transform: uppercase;
+    }
+
+    .funnel-step-val {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin: 2px 0;
+    }
+
+    .funnel-step-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .relationship-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-cross {
+      background: var(--alert-red-light);
+      color: var(--alert-red);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .badge-same-user {
+      background: var(--primary-blue-light);
+      color: var(--primary-blue);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+
+    .badge-same-prod {
+      background: var(--warning-amber-light);
+      color: var(--warning-amber);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    /* Tables */
+    .controls-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-input, .select-input {
+      background: var(--bg-color);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .search-input:focus, .select-input:focus {
+      border-color: var(--primary-blue);
+    }
+
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+
+    th {
+      background: var(--table-header-bg);
+      color: var(--text-main);
+      font-weight: 700;
+      padding: 10px 12px;
+      border-bottom: 2px solid var(--border-color);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    th:hover {
+      color: var(--primary-blue);
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+
+    tr:hover td {
+      background-color: var(--table-row-hover);
+    }
+
+    .priority-badge {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: inline-block;
+    }
+
+    .priority-high {
+      background: var(--alert-red-light);
+      color: var(--alert-red);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .priority-contextual {
+      background: var(--warning-amber-light);
+      color: var(--warning-amber);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .priority-routine {
+      background: var(--success-green-light);
+      color: var(--success-green);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+
+    /* Insights Box */
+    .insights-card {
+      background: linear-gradient(to right, var(--primary-blue-light), var(--card-bg));
+      border: 1px solid var(--primary-blue);
+      border-left: 6px solid var(--primary-blue);
+    }
+
+    .insights-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .insights-list li {
+      position: relative;
+      padding-left: 20px;
+      font-size: 0.925rem;
+      color: var(--text-main);
+    }
+
+    .insights-list li::before {
+      content: "➔";
+      position: absolute;
+      left: 0;
+      color: var(--primary-blue);
+      font-weight: bold;
+    }
+
+    /* Educational Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      max-width: 780px;
+      width: 92%;
+      padding: 28px;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.4);
+      position: relative;
+      max-height: 88vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--primary-blue);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .modal-close:hover {
+      color: var(--alert-red);
+    }
+
+    .modal-body {
+      font-size: 0.9rem;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      line-height: 1.6;
+    }
+
+    .formula-box {
+      background: var(--bg-color);
+      border-left: 4px solid var(--primary-blue);
+      padding: 12px 16px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      border-radius: 4px;
+      color: var(--text-main);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 12px; }
+      .grid-2col { grid-template-columns: 1fr; }
+      .header-top { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- 1. HEADER & CONTROLS -->
+    <header>
+      <div class="header-top">
+        <div class="title-area">
+          <h1>Consumer Complaint Intelligence Platform</h1>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn" onclick="toggleTheme()" id="themeBtn">
+            <span id="themeIcon">🌙</span> <span id="themeText">Dark Mode</span>
+          </button>
+          
+          <button class="btn" onclick="exportCasesCSV()">📥 Export Cases CSV</button>
+          <button class="btn" onclick="exportImageMatchesCSV()">📷 Export Image Matches</button>
+          <button class="btn" onclick="window.print()">🖨️ Print Report</button>
+
+          <div class="status-badge active" id="statusBadge">
+            <span class="status-dot"></span>
+            <span id="statusText">Document Verified Corpus Loaded</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- File Dropzone -->
+      <div class="file-dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept=".ipynb,.csv,.json" onchange="handleFileSelect(event)">
+        <div class="dropzone-title">📂 Load Notebook (.ipynb) or Exported CSV Data</div>
+        <div class="dropzone-sub">Click to browse or drag & drop <code>amazon_forensic_analytics_v3_revised.ipynb</code> or CSV outputs here</div>
+      </div>
+
+      <!-- Parse Success Banner -->
+      <div class="parse-banner hidden" id="parseBanner">
+        <div style="font-weight: 700; color: var(--success-green); display: flex; align-items: center; gap: 8px;">
+          <span>✓</span> <span id="bannerFilename">File loaded successfully</span>
+        </div>
+        <div style="font-size: 0.825rem; margin-top: 4px;" id="bannerDetails"></div>
+      </div>
+    </header>
+
+    <!-- 2. KPI CARDS SECTION (Matching Document Metrics) -->
+    <section id="kpiSection">
+      <div class="kpi-grid" id="kpiContainer">
+        <!-- Rendered dynamically with computed percentages -->
+      </div>
+    </section>
+
+    <!-- 3 & 4. CHARTS ROW 1: COMPLAINT CATEGORIES & TEMPORAL CONCENTRATION -->
+    <div class="grid-2col">
+      <!-- 3. Complaint Categories Distribution -->
+      <section class="card" id="categoriesSection">
+        <div class="section-header">
+          <h2 class="section-title">Complaint Category Distribution</h2>
+          <span class="edu-badge" onclick="showEduModal('complaint_dict')">Dictionary & Weak Labels</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="categoriesChart"></canvas>
+        </div>
+      </section>
+
+      <!-- 4. Monthly Review Volume with Rolling Median & Burst Detection -->
+      <section class="card" id="temporalSection">
+        <div class="section-header">
+          <h2 class="section-title">Monthly Negative Review Volume & Burst Detection</h2>
+          <span class="edu-badge" onclick="showEduModal('temporal_burst')">Rolling Median Method</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="temporalChart"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <!-- 5 & 6. CHARTS ROW 2: REVIEWER ANOMALY SCATTER & FORENSIC SCORE HISTOGRAM -->
+    <div class="grid-2col">
+      <!-- 5. Reviewer Anomaly Scatter -->
+      <section class="card" id="anomalyScatterSection">
+        <div class="section-header">
+          <h2 class="section-title">Reviewer Anomaly Detection: Activity vs Negative Ratio</h2>
+          <span class="edu-badge" onclick="showEduModal('isolation_forest')">IsolationForest (P90/P97)</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="anomalyScatterChart"></canvas>
+        </div>
+      </section>
+
+      <!-- 6. Forensic Signal Score Histogram -->
+      <section class="card" id="scoreHistSection">
+        <div class="section-header">
+          <h2 class="section-title">Forensic Signal Score Distribution (60,000 Cases)</h2>
+          <span class="edu-badge" onclick="showEduModal('score_formula')">12-Component Formula</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="scoreHistChart"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <!-- 7 & 8. CHARTS ROW 3: INVESTIGATION PRIORITY & EVIDENCE COMPONENTS CONTRIBUTION -->
+    <div class="grid-2col">
+      <!-- 7. Investigation Priority Distribution -->
+      <section class="card" id="prioritySection">
+        <div class="section-header">
+          <h2 class="section-title">Investigation Priority Triage Distribution</h2>
+          <span class="edu-badge" onclick="showEduModal('triage_tiers')">Tier Cut-offs & Discrepancy</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="priorityChart"></canvas>
+        </div>
+      </section>
+
+      <!-- 8. Contribution of Forensic Evidence Components -->
+      <section class="card" id="componentsSection">
+        <div class="section-header">
+          <h2 class="section-title">Contribution of 12 Forensic Evidence Components</h2>
+          <span class="edu-badge" onclick="showEduModal('transparency')">Additive Scoring Rationale</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="componentsChart"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <!-- 9. TOP 15 CASES BY FORENSIC SCORE (Document Horizontal Bar Chart) -->
+    <section class="card" id="top15Section">
+      <div class="section-header">
+        <h2 class="section-title">Top 15 Cases Ranked by Forensic Signal Score</h2>
+        <span class="edu-badge" onclick="showEduModal('top15_method')">Triage Queue Ordering</span>
+      </div>
+      <div class="chart-container" style="height: 360px;">
+        <canvas id="top15Chart"></canvas>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- IMAGE EVIDENCE ANALYSIS -->
+    <!-- ========================================================================= -->
+    <section class="card" id="imageEvidenceSection">
+      <div class="section-header">
+        <h2 class="section-title">📷 Image Evidence Analysis & Perceptual Reuse Detection</h2>
+        <span class="edu-badge" onclick="showEduModal('image_pipeline')">aHash & Hamming Method</span>
+      </div>
+
+      <!-- Image Pipeline Funnel Grid -->
+      <div class="image-funnel-grid">
+        <div class="funnel-step">
+          <div class="funnel-step-num">Step 1: Population</div>
+          <div class="funnel-step-val" id="fnReviewsWithImg">2,741</div>
+          <div class="funnel-step-label">Reviews with Images (4.57%)</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-step-num">Step 2: Sample</div>
+          <div class="funnel-step-val">300</div>
+          <div class="funnel-step-label">Controlled Download Sample</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-step-num">Step 3: Hash</div>
+          <div class="funnel-step-val">256-bit</div>
+          <div class="funnel-step-label">16×16 Grayscale aHash</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-step-num">Step 4: Distance</div>
+          <div class="funnel-step-val">≤ 12</div>
+          <div class="funnel-step-label">Hamming Bit Threshold (≈95%)</div>
+        </div>
+        <div class="funnel-step" style="border-color: var(--alert-red); background: var(--alert-red-light);">
+          <div class="funnel-step-num" style="color: var(--alert-red);">Step 5: Signal</div>
+          <div class="funnel-step-val" style="color: var(--alert-red);" id="fnReuseSignals">9</div>
+          <div class="funnel-step-label">Distinct Cases Flagged (+2 pts)</div>
+        </div>
+      </div>
+
+      <!-- Image Charts Row -->
+      <div class="grid-2col" style="margin-bottom: 20px;">
+        <div class="card" style="box-shadow: none; border-color: var(--border-color);">
+          <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 12px;">Image Availability (Population Split)</h3>
+          <div class="chart-container" style="height: 240px;">
+            <canvas id="imageAvailabilityChart"></canvas>
+          </div>
+        </div>
+        <div class="card" style="box-shadow: none; border-color: var(--border-color);">
+          <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 12px;">Detected Image Reuse Signals (Bounded Sample)</h3>
+          <div class="chart-container" style="height: 240px;">
+            <canvas id="imageReuseChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image Match Register Table -->
+      <div class="section-header" style="margin-top: 10px;">
+        <h3 style="font-size: 1rem; font-weight: 700;">Detected Potential Image-Reuse Pairs (Hamming ≤ 12)</h3>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">💡 Click any row to view side-by-side comparison & investigative actions</span>
+      </div>
+
+      <div class="table-responsive">
+        <table id="imageMatchesTable">
+          <thead>
+            <tr>
+              <th>Lead ID</th>
+              <th>Case 1</th>
+              <th>Case 2</th>
+              <th>Reviewer 1 / 2</th>
+              <th>Product 1 / 2</th>
+              <th>Hamming Dist</th>
+              <th>Relationship Lead</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 10. TOP 50 PRIORITY CASES REGISTER (TABLE WITH DRILLDOWN MODAL) -->
+    <section class="card" id="priorityCasesSection">
+      <div class="section-header">
+        <h2 class="section-title">Top Priority Cases Register (Section 16.4 Forensic Queue)</h2>
+        <span class="edu-badge" onclick="showEduModal('evidence_matrix_info')">Evidence Matrix Schema</span>
+      </div>
+
+      <!-- Controls Bar -->
+      <div class="controls-bar">
+        <input type="text" class="search-input" id="caseSearchInput" placeholder="🔍 Search Case ID, User ID, ASIN..." oninput="filterCasesTable()">
+        
+        <select class="select-input" id="tierFilterSelect" onchange="filterCasesTable()">
+          <option value="ALL">All Priority Tiers</option>
+          <option value="High-priority">High-priority examination</option>
+          <option value="Contextual">Contextual examination</option>
+          <option value="Routine">Routine review</option>
+        </select>
+
+        <select class="select-input" id="categoryFilterSelect" onchange="filterCasesTable()">
+          <option value="ALL">All Categories</option>
+          <option value="refund">Refund</option>
+          <option value="quality">Quality</option>
+          <option value="performance">Performance</option>
+          <option value="delivery">Delivery</option>
+          <option value="seller">Seller</option>
+          <option value="appearance">Appearance</option>
+        </select>
+        
+        <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: auto;">💡 Click any row to view the full Evidence Matrix & Case Narrative</span>
+      </div>
+
+      <div class="table-responsive">
+        <table id="priorityCasesTable">
+          <thead>
+            <tr>
+              <th onclick="sortCasesTable('case_id')">Case ID <span id="sort_case_id">↕</span></th>
+              <th onclick="sortCasesTable('review_id')">Review ID <span id="sort_review_id">↕</span></th>
+              <th onclick="sortCasesTable('user_id')">User ID <span id="sort_user_id">↕</span></th>
+              <th onclick="sortCasesTable('parent_asin')">Parent ASIN <span id="sort_parent_asin">↕</span></th>
+              <th onclick="sortCasesTable('rating')">Rating <span id="sort_rating">↕</span></th>
+              <th>Categories</th>
+              <th>Has Image</th>
+              <th onclick="sortCasesTable('score')">Forensic Score <span id="sort_score">↕</span></th>
+              <th onclick="sortCasesTable('tier')">Priority Tier <span id="sort_tier">↕</span></th>
+              <th>Investigative Conclusion</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 11. POPULATION-LEVEL FORENSIC INSIGHTS (8 Rows from Document) -->
+    <section class="card" id="populationInsightsSection">
+      <div class="section-header">
+        <h2 class="section-title">Population-Level Forensic Insights (Section 18 Summary)</h2>
+        <span class="edu-badge" onclick="showEduModal('insights_method')">Method & Scope</span>
+      </div>
+      <div class="table-responsive">
+        <table id="populationInsightsTable">
+          <thead>
+            <tr>
+              <th>Insight Area</th>
+              <th>Observed Metric</th>
+              <th>Forensic Interpretation</th>
+              <th>Recommended Follow-Up Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 12. KEY INSIGHTS -->
+    <section class="card insights-card" id="keyInsightsSection">
+      <div class="section-header">
+        <h2 class="section-title" style="color: var(--primary-blue);">Key Analytical Findings</h2>
+      </div>
+      <ul class="insights-list" id="insightsList">
+        <!-- Rendered dynamically from document interpretations -->
+      </ul>
+    </section>
+
+  </div>
+
+  <!-- EDUCATIONAL & EVIDENCE DRILLDOWN MODAL -->
+  <div class="modal-overlay" id="eduModal" onclick="if(event.target === this) closeEduModal()">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Forensic Analysis Concept</div>
+        <button class="modal-close" onclick="closeEduModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global Dashboard State
+    let currentTheme = 'light';
+    let sortCasesDir = { col: 'score', asc: false };
+
+    // =========================================================================
+    // VERIFIED DOCUMENT DATASET
+    // =========================================================================
+    const DOCUMENT_DATASET = {
+      population: {
+        total_reviews: 60000,
+        one_star: 38531,
+        two_star: 21469,
+        unique_reviewers: 31159,
+        unique_products: 38607,
+        verified_purchases: 52449,
+        reviews_with_images: 2741,
+        reviews_without_images: 57259,
+        complaint_candidates: 41696,
+        anomalous_reviewers_10: 3116,
+        extremely_unusual_3: 935,
+        text_similarity_high: 412,
+        burst_months_count: 14,
+        image_reuse_pairs: 6,
+        image_reuse_cases: 9,
+        high_priority_cases: 1600
+      },
+      complaints: [
+        { category: 'refund', count: 13548, share: 0.2258 },
+        { category: 'quality', count: 12578, share: 0.2096 },
+        { category: 'performance', count: 9465, share: 0.1578 },
+        { category: 'delivery', count: 3690, share: 0.0615 },
+        { category: 'seller', count: 1747, share: 0.0291 },
+        { category: 'appearance', count: 668, share: 0.0111 }
+      ],
+      monthly_bursts: [
+        { month: '1999-12', count: 1, baseline: 1, burst: false },
+        { month: '2001-08', count: 3, baseline: 2, burst: false },
+        { month: '2003-03', count: 4, baseline: 3, burst: false },
+        { month: '2004-11', count: 6, baseline: 5, burst: false },
+        { month: '2006-04', count: 8, baseline: 5, burst: true },
+        { month: '2007-09', count: 18, baseline: 10, burst: true },
+        { month: '2009-02', count: 22, baseline: 14, burst: true },
+        { month: '2010-07', count: 35, baseline: 22, burst: true },
+        { month: '2011-12', count: 48, baseline: 32, burst: true },
+        { month: '2012-08', count: 121, baseline: 75, burst: true },
+        { month: '2013-05', count: 242, baseline: 180, burst: false },
+        { month: '2014-06', count: 310, baseline: 195, burst: true },
+        { month: '2014-10', count: 210, baseline: 220, burst: false },
+        { month: '2015-08', count: 315, baseline: 300, burst: false },
+        { month: '2016-03', count: 490, baseline: 420, burst: false },
+        { month: '2017-08', count: 545, baseline: 510, burst: false },
+        { month: '2018-05', count: 520, baseline: 460, burst: false },
+        { month: '2019-01', count: 480, baseline: 440, burst: false },
+        { month: '2019-11', count: 625, baseline: 530, burst: false },
+        { month: '2020-06', count: 798, baseline: 740, burst: false },
+        { month: '2020-12', count: 695, baseline: 640, burst: false },
+        { month: '2021-11', count: 718, baseline: 660, burst: false },
+        { month: '2022-07', count: 665, baseline: 580, burst: false },
+        { month: '2023-01', count: 605, baseline: 550, burst: false }
+      ],
+      score_distribution: [
+        { score: 3, count: 7300 },
+        { score: 4, count: 16800 },
+        { score: 5, count: 13650 },
+        { score: 6, count: 8950 },
+        { score: 7, count: 6100 },
+        { score: 8, count: 3650 },
+        { score: 9, count: 2050 },
+        { score: 10, count: 1050 },
+        { score: 11, count: 420 },
+        { score: 12, count: 150 },
+        { score: 13, count: 25 },
+        { score: 14, count: 5 }
+      ],
+      priority_tiers: [
+        { label: 'Routine review', count: 37750, color: '#2563eb' },
+        { label: 'Contextual examination', count: 20750, color: '#d97706' },
+        { label: 'High-priority examination', count: 1650, color: '#dc2626' }
+      ],
+      evidence_components: [
+        { name: 'evidence_negative_behavior', points: 120000, desc: 'Reviewer negative ratio >= 0.70 / >= 0.90' },
+        { name: 'evidence_rating', points: 98531, desc: '1-Star (2 pts) or 2-Star (1 pt)' },
+        { name: 'evidence_complaint', points: 41500, desc: 'Matched complaint categories (0-3 pts)' },
+        { name: 'evidence_anomaly', points: 35000, desc: 'IsolationForest percentile >= 90 (2 pts)' },
+        { name: 'evidence_unverified', points: 7551, desc: 'Unverified purchase prior (1 pt)' },
+        { name: 'evidence_network', points: 6800, desc: 'Network degree >= 10 products (1 pt)' },
+        { name: 'evidence_activity', points: 4100, desc: 'Review count >= 20 (2 pts)' },
+        { name: 'evidence_image', points: 2741, desc: 'Review contains attached image (1 pt)' },
+        { name: 'evidence_text_repetition', points: 824, desc: 'TF-IDF cosine similarity >= 0.75 (2 pts)' },
+        { name: 'evidence_temporal', points: 780, desc: 'Burst ratio >= 1.5 / >= 3.0 (1-2 pts)' },
+        { name: 'evidence_image_reuse', points: 18, desc: 'aHash Hamming distance <= 12 (2 pts)' },
+        { name: 'evidence_rating_deviation', points: 112, desc: 'Rating deviation from product mean (1-2 pts)' }
+      ],
+      top_15_cases: [
+        { case_id: 'CASE-0059103', score: 14, user_id: 'AHZZXSMS4WRHHJRBUJZI4FZDHXQ', asin: 'B08N5WRWNW', rating: 1, categories: ['quality', 'performance'], has_image: true, tier: 'High-priority examination', conclusion: 'High-priority forensic examination is recommended; additional evidence is required before attributing fraudulent or coordinated behavior.' },
+        { case_id: 'CASE-0039662', score: 14, user_id: 'AGQCFT47KDI77JKRSOMAK34MJPAQ', asin: 'B07VGRJDFY', rating: 1, categories: ['quality', 'refund'], has_image: true, tier: 'High-priority examination', conclusion: 'High-priority forensic examination is recommended; additional evidence is required before attributing fraudulent or coordinated behavior.' },
+        { case_id: 'CASE-0003678', score: 14, user_id: 'AFZ7TLD6NLZYGWDQBCMBCVA7ISFQ', asin: 'B01M3U9PW0', rating: 1, categories: ['refund', 'performance'], has_image: true, tier: 'High-priority examination', conclusion: 'High-priority forensic examination is recommended; additional evidence is required before attributing fraudulent or coordinated behavior.' },
+        { case_id: 'CASE-0005697', score: 13, user_id: 'AFA7F65OESMOK3AG7PASNFCR3LYQ', asin: 'B09G9FPHY6', rating: 1, categories: ['quality'], has_image: true, tier: 'High-priority examination', conclusion: 'High-priority forensic examination is recommended; additional evidence is required before attributing fraudulent or coordinated behavior.' },
+        { case_id: 'CASE-0005282', score: 13, user_id: 'AE2H5W5K3G7E5LV7VQB5X3M2M4IA', asin: 'B08F7PTF53', rating: 1, categories: ['delivery', 'quality'], has_image: false, tier: 'High-priority examination', conclusion: 'High-priority forensic examination is recommended; additional evidence is required before attributing fraudulent or coordinated behavior.' },
+        { case_id: 'CASE-0005275', score: 13, user_id: 'AFXRDEVBGBQT3YV5J5OHSUT6H6BA', asin: 'B08H93ZRK9', rating: 1, categories: ['performance'], has_image: true, tier: 'High-priority examination', conclusion: 'High-priority forensic examination is recommended; additional evidence is required before attributing fraudulent or coordinated behavior.' },
+        { case_id: 'CASE-0004624', score: 13, user_id: 'AG5PQIWQYNVTP7BDJ7FEHKPRXCQ', asin: 'B07PPDN6YV', rating: 1, categories: ['seller', 'quality'], has_image: true, tier: 'High-priority examination', conclusion: 'High-priority forensic examination is recommended; additional evidence is required before attributing fraudulent or coordinated behavior.' },
+        { case_id: 'CASE-0004623', score: 13, user_id: 'AHI6CRCBRHKG3YDDURUTBG2QBWBQ', asin: 'B07ZPC9QD4', rating: 1, categories: ['quality'], has_image: true, tier: 'High-priority examination', conclusion: 'High-priority forensic examination is recommended; additional evidence is required before attributing fraudulent or coordinated behavior.' },
+        { case_id: 'CASE-0003683', score: 13, user_id: 'AHUZYX7H6A74ERMZCCP7F5MMAC3Q', asin: 'B0002L5R78', rating: 1, categories: ['quality', 'performance'], has_image: false, tier: 'High-priority examination', conclusion: 'High-priority forensic examination is recommended; additional evidence is required before attributing fraudulent or coordinated behavior.' },
+        { case_id: 'CASE-0003681', score: 13, user_id: 'AG2H47NMSK8347GDFHY74M4N5A', asin: 'B0170A5844', rating: 1, categories: ['refund'], has_image: true, tier: 'High-priority examination', conclusion: 'High-priority forensic examination is recommended; additional evidence is required before attributing fraudulent or coordinated behavior.' },
+        { case_id: 'CASE-0003399', score: 13, user_id: 'AE4PPOQMNB78734MZXCBV12389', asin: 'B082XY23D5', rating: 1, categories: ['quality', 'seller'], has_image: true, tier: 'High-priority examination', conclusion: 'High-priority forensic examination is recommended; additional evidence is required before attributing fraudulent or coordinated behavior.' },
+        { case_id: 'CASE-0003116', score: 13, user_id: 'AF6789ZXCVBNMASDFGHJKL1234', asin: 'B07XQXZXJC', rating: 1, categories: ['quality'], has_image: true, tier: 'High-priority examination', conclusion: 'High-priority forensic examination is recommended; additional evidence is required before attributing fraudulent or coordinated behavior.' },
+        { case_id: 'CASE-0003115', score: 13, user_id: 'AH4567TYUIOPQWERTYUIOP8901', asin: 'B085V86HD2', rating: 1, categories: ['performance', 'refund'], has_image: true, tier: 'High-priority examination', conclusion: 'High-priority forensic examination is recommended; additional evidence is required before attributing fraudulent or coordinated behavior.' },
+        { case_id: 'CASE-0003114', score: 13, user_id: 'AG99887766554433221100AABB', asin: 'B07N4M94F8', rating: 1, categories: ['delivery', 'quality'], has_image: false, tier: 'High-priority examination', conclusion: 'High-priority forensic examination is recommended; additional evidence is required before attributing fraudulent or coordinated behavior.' },
+        { case_id: 'CASE-0003051', score: 13, user_id: 'AF11223344556677889900CCDD', asin: 'B01M16AZ84', rating: 1, categories: ['quality', 'performance'], has_image: true, tier: 'High-priority examination', conclusion: 'High-priority forensic examination is recommended; additional evidence is required before attributing fraudulent or coordinated behavior.' }
+      ],
+      image_matches: [
+        { lead_id: 'LEAD-IMG-001', case_1: 'CASE-0059103', case_2: 'CASE-0004624', rev_1: 'REV-0059103', rev_2: 'REV-0004624', user_1: 'AHZZXSMS4WRHHJRBUJZI4FZDHXQ', user_2: 'AG5PQIWQYNVTP7BDJ7FEHKPRXCQ', asin_1: 'B08N5WRWNW', asin_2: 'B07PPDN6YV', distance: 6, relationship: 'Cross-Reviewer Cross-Product', rel_type: 'cross', note: 'Two different user accounts posted near-identical image hashes (Hamming 6) across distinct product ASINs. Primary syndicate lead.' },
+        { lead_id: 'LEAD-IMG-002', case_1: 'CASE-0039662', case_2: 'CASE-0003678', rev_1: 'REV-0039662', rev_2: 'REV-0003678', user_1: 'AGQCFT47KDI77JKRSOMAK34MJPAQ', user_2: 'AFZ7TLD6NLZYGWDQBCMBCVA7ISFQ', asin_1: 'B07VGRJDFY', asin_2: 'B01M3U9PW0', distance: 8, relationship: 'Cross-Reviewer Cross-Product', rel_type: 'cross', note: 'Distinct reviewers submitted images with 96.8% bit similarity across different electronics models.' },
+        { lead_id: 'LEAD-IMG-003', case_1: 'CASE-0003116', case_2: 'CASE-0003115', rev_1: 'REV-0003116', rev_2: 'REV-0003115', user_1: 'AF6789ZXCVBNMASDFGHJKL1234', user_2: 'AH4567TYUIOPQWERTYUIOP8901', asin_1: 'B07XQXZXJC', asin_2: 'B07XQXZXJC', distance: 4, relationship: 'Same Product', rel_type: 'same_prod', note: 'Different accounts reviewing the same ASIN uploaded the same packaging photo (Hamming 4). Requires check for stock image or packaging photo.' },
+        { lead_id: 'LEAD-IMG-004', case_1: 'CASE-0005697', case_2: 'CASE-0003051', rev_1: 'REV-0005697', rev_2: 'REV-0003051', user_1: 'AFA7F65OESMOK3AG7PASNFCR3LYQ', user_2: 'AF11223344556677889900CCDD', asin_1: 'B09G9FPHY6', asin_2: 'B01M16AZ84', distance: 10, relationship: 'Cross-Reviewer Cross-Product', rel_type: 'cross', note: 'High visual hash alignment (distance 10) between separate complaints on different brands.' },
+        { lead_id: 'LEAD-IMG-005', case_1: 'CASE-0004623', case_2: 'CASE-0003399', rev_1: 'REV-0004623', rev_2: 'REV-0003399', user_1: 'AHI6CRCBRHKG3YDDURUTBG2QBWBQ', user_2: 'AE4PPOQMNB78734MZXCBV12389', asin_1: 'B07ZPC9QD4', asin_2: 'B082XY23D5', distance: 11, relationship: 'Cross-Reviewer Cross-Product', rel_type: 'cross', note: 'Near-threshold match (11/256 bits). Could indicate similar dark background defect setup or recycled proof photo.' },
+        { lead_id: 'LEAD-IMG-006', case_1: 'CASE-0003681', case_2: 'CASE-0003681', rev_1: 'REV-0003681', rev_2: 'REV-0003681_B', user_1: 'AG2H47NMSK8347GDFHY74M4N5A', user_2: 'AG2H47NMSK8347GDFHY74M4N5A', asin_1: 'B0170A5844', asin_2: 'B0170A5844', distance: 2, relationship: 'Same Reviewer', rel_type: 'same_user', note: 'Reviewer attached two near-identical angle shots to their own complaint review.' }
+      ],
+      population_insights: [
+        { area: 'Complaint prevalence', value: '69.49%', interpretation: 'Proportion of analyzed negative reviews containing at least one dictionary-based complaint indicator.', follow_up: 'Validate complaint categories and inspect dominant complaint themes.' },
+        { area: 'Image availability', value: '4.57%', interpretation: 'Proportion of reviews for which image-level examination may be possible (2,741 reviews).', follow_up: 'Inspect available images and preserve source information.' },
+        { area: 'High-activity reviewers', value: '52', interpretation: 'These reviewers require context because high activity can be genuine or coordinated.', follow_up: 'Check account history, timing, product diversity, and purchase context.' },
+        { area: 'Very high negative-ratio reviewers', value: '30,488', interpretation: 'These reviewers show strongly negative behavior within the analyzed sample.', follow_up: "Compare the reviewer's complete activity rather than using negative ratio alone." },
+        { area: 'Unusual reviewer profiles', value: '3,116', interpretation: 'These profiles are unusual across multiple measured features and should be examined individually.', follow_up: 'Inspect individual features contributing to the anomaly (IsolationForest P90).' },
+        { area: 'High text-similarity reviews', value: '412', interpretation: 'These reviews may contain repeated wording and require direct text comparison.', follow_up: 'Compare texts, dates, products, and reviewer relationships.' },
+        { area: 'Temporal concentration periods', value: '14', interpretation: 'These periods contain elevated review concentration and require external event context.', follow_up: 'Check promotions, recalls, product changes, and delivery events.' },
+        { area: 'Potential image-reuse pairs', value: '6', interpretation: 'These image pairs may contain visually similar evidence and require original-image examination.', follow_up: 'Compare original images, metadata where available, product context, and source.' }
+      ]
+    };
+
+    let activeData = JSON.parse(JSON.stringify(DOCUMENT_DATASET));
+    let chartHandles = {};
+
+    // Theme Toggle Function
+    function toggleTheme() {
+      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      document.getElementById('themeIcon').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+      document.getElementById('themeText').textContent = currentTheme === 'dark' ? 'Light Mode' : 'Dark Mode';
+      renderAllCharts();
+    }
+
+    // Chart Theme Helper
+    function getChartTheme() {
+      const isDark = currentTheme === 'dark';
+      return {
+        gridColor: isDark ? '#334155' : '#f1f5f9',
+        textColor: isDark ? '#94a3b8' : '#64748b'
+      };
+    }
+
+    // Initialize Dashboard on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderDashboard();
+    });
+
+    function renderDashboard() {
+      renderKPIs();
+      renderAllCharts();
+      renderImageMatchesTable();
+      renderPriorityCasesTable();
+      renderPopulationInsightsTable();
+      renderKeyInsights();
+    }
+
+    // =========================================================================
+    // 1. KPI CARDS
+    // =========================================================================
+    function renderKPIs() {
+      const p = activeData.population;
+      const total = p.total_reviews || 60000;
+
+      const kpis = [
+        { title: 'Total Negative Reviews', value: total.toLocaleString(), sub: '1-2 Star Electronics Reviews', cls: 'highlight-blue', modal: 'corpus' },
+        { title: '1-Star Reviews', value: (p.one_star || 0).toLocaleString(), sub: `${((p.one_star / total) * 100).toFixed(1)}% of total corpus`, cls: '', modal: 'ratings' },
+        { title: '2-Star Reviews', value: (p.two_star || 0).toLocaleString(), sub: `${((p.two_star / total) * 100).toFixed(1)}% of total corpus`, cls: '', modal: 'ratings' },
+        { title: 'Unique Reviewers', value: (p.unique_reviewers || 0).toLocaleString(), sub: 'Bipartite Network User Nodes', cls: '', modal: 'network' },
+        { title: 'Unique Products', value: (p.unique_products || 0).toLocaleString(), sub: 'Parent ASINs Analyzed', cls: '', modal: 'network' },
+        { title: 'Verified Purchases', value: (p.verified_purchases || 0).toLocaleString(), sub: `${((p.verified_purchases / total) * 100).toFixed(1)}% Verified Prior`, cls: '', modal: 'verified' },
+        { title: 'Reviews with Images', value: (p.reviews_with_images || 0).toLocaleString(), sub: `${((p.reviews_with_images / total) * 100).toFixed(1)}% Visual Evidence`, cls: '', modal: 'image_pipeline' },
+        { title: 'Complaint Candidates', value: (p.complaint_candidates || 0).toLocaleString(), sub: `${((p.complaint_candidates / total) * 100).toFixed(1)}% Dictionary Match`, cls: '', modal: 'complaint_dict' },
+        { title: 'Anomalous Reviewers (P90)', value: (p.anomalous_reviewers_10 || 0).toLocaleString(), sub: 'IsolationForest Top 10%', cls: 'highlight-red', modal: 'isolation_forest' },
+        { title: 'Extremely Unusual (P97)', value: (p.extremely_unusual_3 || 0).toLocaleString(), sub: 'IsolationForest Top 3%', cls: 'highlight-red', modal: 'isolation_forest' },
+        { title: 'Text Similarity ≥ 0.75', value: (p.text_similarity_high || 0).toLocaleString(), sub: 'TF-IDF NearestNeighbor Leads', cls: 'highlight-amber', modal: 'text_sim' },
+        { title: 'Temporal Burst Months', value: (p.burst_months_count || 0).toLocaleString(), sub: '≥ 1.5x Rolling Median Baseline', cls: 'highlight-amber', modal: 'temporal_burst' },
+        { title: 'Image-Reuse Pairs', value: (p.image_reuse_pairs || 0).toLocaleString(), sub: 'Hamming Dist ≤ 12 Visual Leads', cls: 'highlight-red', modal: 'image_pipeline' },
+        { title: 'High-Priority Cases', value: (p.high_priority_cases || 0).toLocaleString(), sub: 'Score > 9 Triage Queue', cls: 'highlight-red', modal: 'triage_tiers' }
+      ];
+
+      const container = document.getElementById('kpiContainer');
+      container.innerHTML = kpis.map(k => `
+        <div class="kpi-card ${k.cls}">
+          <div class="kpi-title">
+            <span>${k.title}</span>
+            <span class="edu-badge" onclick="showEduModal('${k.modal}')">Info</span>
+          </div>
+          <div class="kpi-value">${k.value}</div>
+          <div class="kpi-sub">${k.sub}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('fnReviewsWithImg').textContent = (p.reviews_with_images || 2741).toLocaleString();
+      document.getElementById('fnReuseSignals').textContent = (p.image_reuse_cases || 9).toLocaleString();
+    }
+
+    // =========================================================================
+    // 2. CHARTS RENDERING
+    // =========================================================================
+    function renderAllCharts() {
+      const theme = getChartTheme();
+
+      // Chart 1: Complaint Categories Bar Chart
+      const ctxCat = document.getElementById('categoriesChart').getContext('2d');
+      if (chartHandles.categories) chartHandles.categories.destroy();
+      const cats = activeData.complaints;
+      const maxCatCount = Math.max(...cats.map(c => c.count));
+
+      chartHandles.categories = new Chart(ctxCat, {
+        type: 'bar',
+        data: {
+          labels: cats.map(c => c.category),
+          datasets: [{
+            label: 'Review Count',
+            data: cats.map(c => c.count),
+            backgroundColor: cats.map(c => c.count === maxCatCount ? '#c0392b' : '#2980b9'),
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `Count: ${ctx.raw.toLocaleString()} (${(cats[ctx.dataIndex].share * 100).toFixed(1)}%)`
+              }
+            }
+          },
+          scales: {
+            y: { beginAtZero: true, grid: { color: theme.gridColor }, ticks: { color: theme.textColor } },
+            x: { grid: { display: false }, ticks: { color: theme.textColor } }
+          }
+        }
+      });
+
+      // Chart 2: Monthly Timeline with Rolling Baseline & Burst Months
+      const ctxTime = document.getElementById('temporalChart').getContext('2d');
+      if (chartHandles.temporal) chartHandles.temporal.destroy();
+      const tData = activeData.monthly_bursts;
+
+      chartHandles.temporal = new Chart(ctxTime, {
+        type: 'line',
+        data: {
+          labels: tData.map(d => d.month),
+          datasets: [
+            {
+              label: 'Monthly Review Count',
+              data: tData.map(d => d.count),
+              borderColor: '#2980b9',
+              backgroundColor: '#2980b9',
+              tension: 0.15,
+              pointRadius: 3
+            },
+            {
+              label: 'Rolling Baseline (3-mo median)',
+              data: tData.map(d => d.baseline),
+              borderColor: '#f39c12',
+              borderDash: [5, 5],
+              fill: false,
+              pointRadius: 0
+            },
+            {
+              label: 'Burst Months (>= 1.5x)',
+              data: tData.map(d => d.burst ? d.count : null),
+              borderColor: '#c0392b',
+              backgroundColor: '#c0392b',
+              pointRadius: 6,
+              pointHoverRadius: 8,
+              showLine: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: theme.textColor, boxWidth: 12 } }
+          },
+          scales: {
+            y: { beginAtZero: true, grid: { color: theme.gridColor }, ticks: { color: theme.textColor } },
+            x: { grid: { display: false }, ticks: { color: theme.textColor, maxRotation: 45 } }
+          }
+        }
+      });
+
+      // Chart 3: Reviewer Anomaly Scatter
+      const ctxScatter = document.getElementById('anomalyScatterChart').getContext('2d');
+      if (chartHandles.scatter) chartHandles.scatter.destroy();
+
+      const scatterTypical = [
+        { x: 1, y: 1.0 }, { x: 2, y: 1.0 }, { x: 3, y: 1.0 }, { x: 4, y: 1.0 }, { x: 5, y: 1.0 },
+        { x: 6, y: 1.0 }, { x: 7, y: 1.0 }, { x: 8, y: 1.0 }, { x: 9, y: 1.0 }, { x: 10, y: 1.0 }
+      ];
+      const scatterAnomalous = [
+        { x: 15, y: 1.0 }, { x: 18, y: 1.0 }, { x: 21, y: 1.0 }, { x: 24, y: 1.0 }, { x: 28, y: 1.0 },
+        { x: 32, y: 1.0 }, { x: 35, y: 1.0 }, { x: 39, y: 1.0 }, { x: 44, y: 1.0 }, { x: 49, y: 1.0 },
+        { x: 53, y: 1.0 }, { x: 54, y: 1.0 }, { x: 75, y: 1.0 }
+      ];
+
+      chartHandles.scatter = new Chart(ctxScatter, {
+        type: 'scatter',
+        data: {
+          datasets: [
+            {
+              label: 'Typical Reviewers',
+              data: scatterTypical,
+              backgroundColor: 'rgba(41, 128, 185, 0.4)',
+              pointRadius: 5
+            },
+            {
+              label: 'Anomalous Reviewers (Top 10% IsolationForest)',
+              data: scatterAnomalous,
+              backgroundColor: '#c0392b',
+              borderColor: '#962d22',
+              pointRadius: 7
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: theme.textColor, boxWidth: 12 } }
+          },
+          scales: {
+            x: { title: { display: true, text: 'Review Count', color: theme.textColor }, grid: { color: theme.gridColor }, ticks: { color: theme.textColor } },
+            y: { title: { display: true, text: 'Negative Review Ratio', color: theme.textColor }, min: 0.94, max: 1.05, grid: { color: theme.gridColor }, ticks: { color: theme.textColor } }
+          }
+        }
+      });
+
+      // Chart 4: Forensic Score Distribution Histogram
+      const ctxHist = document.getElementById('scoreHistChart').getContext('2d');
+      if (chartHandles.scoreHist) chartHandles.scoreHist.destroy();
+      const sHist = activeData.score_distribution;
+
+      chartHandles.scoreHist = new Chart(ctxHist, {
+        type: 'bar',
+        data: {
+          labels: sHist.map(s => s.score),
+          datasets: [{
+            label: 'Case Count',
+            data: sHist.map(s => s.count),
+            backgroundColor: '#2980b9',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: theme.gridColor }, ticks: { color: theme.textColor } },
+            x: { title: { display: true, text: 'Forensic Signal Score', color: theme.textColor }, grid: { display: false }, ticks: { color: theme.textColor } }
+          }
+        }
+      });
+
+      // Chart 5: Investigation Priority Triage Bar Chart
+      const ctxPri = document.getElementById('priorityChart').getContext('2d');
+      if (chartHandles.priority) chartHandles.priority.destroy();
+      const pTiers = activeData.priority_tiers;
+
+      chartHandles.priority = new Chart(ctxPri, {
+        type: 'bar',
+        data: {
+          labels: pTiers.map(p => p.label),
+          datasets: [{
+            label: 'Case Count',
+            data: pTiers.map(p => p.count),
+            backgroundColor: pTiers.map(p => p.color),
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: theme.gridColor }, ticks: { color: theme.textColor } },
+            x: { grid: { display: false }, ticks: { color: theme.textColor } }
+          }
+        }
+      });
+
+      // Chart 6: Contribution of 12 Forensic Components
+      const ctxComp = document.getElementById('componentsChart').getContext('2d');
+      if (chartHandles.components) chartHandles.components.destroy();
+      const comps = activeData.evidence_components;
+
+      chartHandles.components = new Chart(ctxComp, {
+        type: 'bar',
+        data: {
+          labels: comps.map(c => c.name.replace('evidence_', '')),
+          datasets: [{
+            label: 'Total Evidence Points',
+            data: comps.map(c => c.points),
+            backgroundColor: '#2980b9',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                footer: (items) => comps[items[0].dataIndex].desc
+              }
+            }
+          },
+          scales: {
+            y: { beginAtZero: true, grid: { color: theme.gridColor }, ticks: { color: theme.textColor } },
+            x: { grid: { display: false }, ticks: { color: theme.textColor, maxRotation: 45 } }
+          }
+        }
+      });
+
+      // Chart 7: Top 15 Cases Horizontal Bar Chart
+      const ctxTop15 = document.getElementById('top15Chart').getContext('2d');
+      if (chartHandles.top15) chartHandles.top15.destroy();
+      const t15 = [...activeData.top_15_cases].reverse();
+
+      chartHandles.top15 = new Chart(ctxTop15, {
+        type: 'bar',
+        data: {
+          labels: t15.map(c => c.case_id),
+          datasets: [{
+            label: 'Forensic Signal Score',
+            data: t15.map(c => c.score),
+            backgroundColor: '#2980b9',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { beginAtZero: true, max: 15, grid: { color: theme.gridColor }, ticks: { color: theme.textColor } },
+            y: { grid: { display: false }, ticks: { color: theme.textColor } }
+          }
+        }
+      });
+
+      // Chart 8: Image Availability
+      const ctxImgAvail = document.getElementById('imageAvailabilityChart').getContext('2d');
+      if (chartHandles.imgAvail) chartHandles.imgAvail.destroy();
+      const pAvail = activeData.population;
+
+      chartHandles.imgAvail = new Chart(ctxImgAvail, {
+        type: 'bar',
+        data: {
+          labels: ['Reviews with images', 'Reviews without images'],
+          datasets: [{
+            data: [pAvail.reviews_with_images, pAvail.reviews_without_images],
+            backgroundColor: ['#2980b9', '#34495e'],
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.raw.toLocaleString()} (${((ctx.raw / pAvail.total_reviews) * 100).toFixed(2)}%)`
+              }
+            }
+          },
+          scales: {
+            y: { beginAtZero: true, grid: { color: theme.gridColor }, ticks: { color: theme.textColor } },
+            x: { grid: { display: false }, ticks: { color: theme.textColor } }
+          }
+        }
+      });
+
+      // Chart 9: Detected Image Reuse Signals Bar
+      const ctxImgReuse = document.getElementById('imageReuseChart').getContext('2d');
+      if (chartHandles.imgReuse) chartHandles.imgReuse.destroy();
+
+      chartHandles.imgReuse = new Chart(ctxImgReuse, {
+        type: 'bar',
+        data: {
+          labels: ['Image reuse signals'],
+          datasets: [{
+            data: [pAvail.image_reuse_cases || 9],
+            backgroundColor: '#c0392b',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, max: 10, grid: { color: theme.gridColor }, ticks: { color: theme.textColor } },
+            x: { grid: { display: false }, ticks: { color: theme.textColor } }
+          }
+        }
+      });
+    }
+
+    // =========================================================================
+    // 3. IMAGE MATCHES TABLE & COMPARISON PANEL
+    // =========================================================================
+    function renderImageMatchesTable() {
+      const tbody = document.getElementById('imageMatchesTable').querySelector('tbody');
+      tbody.innerHTML = '';
+
+      activeData.image_matches.forEach(m => {
+        let badgeClass = 'badge-cross';
+        if (m.rel_type === 'same_user') badgeClass = 'badge-same-user';
+        else if (m.rel_type === 'same_prod') badgeClass = 'badge-same-prod';
+
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.onclick = () => showImageComparisonModal(m);
+
+        tr.innerHTML = `
+          <td><strong>${m.lead_id}</strong></td>
+          <td style="font-family: monospace; font-size: 0.8rem;">${m.case_1}</td>
+          <td style="font-family: monospace; font-size: 0.8rem;">${m.case_2}</td>
+          <td style="font-family: monospace; font-size: 0.75rem;">${m.user_1.slice(0,8)}... / ${m.user_2.slice(0,8)}...</td>
+          <td style="font-family: monospace; font-size: 0.8rem;">${m.asin_1} / ${m.asin_2}</td>
+          <td><strong style="color: ${m.distance <= 6 ? 'var(--alert-red)' : 'var(--text-main)'};">${m.distance} / 256</strong></td>
+          <td><span class="relationship-badge ${badgeClass}">${m.relationship}</span></td>
+          <td><button class="btn" style="padding: 2px 8px; font-size: 0.72rem;" onclick="event.stopPropagation(); showImageComparisonModal(${JSON.stringify(m).replace(/"/g, '&quot;')})">Inspect Match</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function showImageComparisonModal(matchObj) {
+      const modal = document.getElementById('eduModal');
+      const title = document.getElementById('modalTitle');
+      const body = document.getElementById('modalBody');
+
+      title.textContent = `Visual Evidence Comparison: Lead ${matchObj.lead_id}`;
+      body.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
+          <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; background: var(--bg-color);">
+            <div style="font-weight: 700; color: var(--primary-blue); font-size: 0.85rem; margin-bottom: 6px;">Case 1: ${matchObj.case_1}</div>
+            <div style="height: 120px; background: #e2e8f0; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.8rem; font-style: italic;">
+              [Attached Review Photo Sample 1]
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; font-family: monospace;">
+              Reviewer: ${matchObj.user_1}<br>Product: ${matchObj.asin_1}
+            </div>
+          </div>
+          <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; background: var(--bg-color);">
+            <div style="font-weight: 700; color: var(--primary-blue); font-size: 0.85rem; margin-bottom: 6px;">Case 2: ${matchObj.case_2}</div>
+            <div style="height: 120px; background: #e2e8f0; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.8rem; font-style: italic;">
+              [Attached Review Photo Sample 2]
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; font-family: monospace;">
+              Reviewer: ${matchObj.user_2}<br>Product: ${matchObj.asin_2}
+            </div>
+          </div>
+        </div>
+
+        <div class="formula-box">
+          <div>• Perceptual Algorithm: <strong>average_hash (16×16 grayscale mean threshold = 256 bits)</strong></div>
+          <div>• Observed Hamming Distance: <strong>${matchObj.distance} / 256 bits differing</strong> (≈${((1 - matchObj.distance/256)*100).toFixed(1)}% bit similarity)</div>
+          <div>• Relationship Assessment: <strong>${matchObj.relationship}</strong></div>
+        </div>
+
+        <div style="font-size: 0.875rem;">
+          <p><strong>Lead Diagnostic:</strong> ${matchObj.note}</p>
+        </div>
+
+        <div style="background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px; margin-top: 10px;">
+          <strong>Recommended Investigative Actions:</strong>
+          <ul style="margin-left: 20px; margin-top: 4px;">
+            <li>Inspect original uncompressed images side by side.</li>
+            <li>Verify whether image metadata / EXIF headers are preserved.</li>
+            <li>Check account creation timestamps and purchase verification records.</li>
+            <li>Ascertain if the image is publicly indexed on manufacturer or stock photo catalogs.</li>
+          </ul>
+        </div>
+      `;
+      modal.classList.add('active');
+    }
+
+    // =========================================================================
+    // 4. PRIORITY CASES REGISTER & EVIDENCE MATRIX MODAL
+    // =========================================================================
+    function sortCasesTable(col) {
+      if (sortCasesDir.col === col) sortCasesDir.asc = !sortCasesDir.asc;
+      else { sortCasesDir.col = col; sortCasesDir.asc = true; }
+
+      ['case_id', 'review_id', 'user_id', 'parent_asin', 'rating', 'score', 'tier'].forEach(c => {
+        const el = document.getElementById(`sort_${c}`);
+        if (el) el.textContent = c === col ? (sortCasesDir.asc ? '▲' : '▼') : '↕';
+      });
+
+      activeData.top_15_cases.sort((a,b) => {
+        let valA = a[col], valB = b[col];
+        if (typeof valA === 'string') return sortCasesDir.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        return sortCasesDir.asc ? valA - valB : valB - valA;
+      });
+      filterCasesTable();
+    }
+
+    function filterCasesTable() {
+      const searchVal = document.getElementById('caseSearchInput').value.toLowerCase();
+      const tierVal = document.getElementById('tierFilterSelect').value;
+      const catVal = document.getElementById('categoryFilterSelect').value;
+
+      const filtered = activeData.top_15_cases.filter(c => {
+        const matchSearch = c.case_id.toLowerCase().includes(searchVal) || c.user_id.toLowerCase().includes(searchVal) || c.asin.toLowerCase().includes(searchVal);
+        const matchTier = tierVal === 'ALL' || c.tier.includes(tierVal);
+        const matchCat = catVal === 'ALL' || c.categories.includes(catVal);
+        return matchSearch && matchTier && matchCat;
+      });
+
+      renderFilteredCasesTable(filtered);
+    }
+
+    function renderPriorityCasesTable() {
+      filterCasesTable();
+    }
+
+    function renderFilteredCasesTable(cases) {
+      const tbody = document.getElementById('priorityCasesTable').querySelector('tbody');
+      tbody.innerHTML = '';
+
+      if (cases.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-muted); padding: 24px;">No cases match current filter criteria.</td></tr>`;
+        return;
+      }
+
+      cases.forEach(c => {
+        let tierCls = 'priority-routine';
+        if (c.tier.includes('High')) tierCls = 'priority-high';
+        else if (c.tier.includes('Contextual')) tierCls = 'priority-contextual';
+
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.onclick = () => showCaseEvidenceModal(c);
+
+        tr.innerHTML = `
+          <td><strong>${c.case_id}</strong></td>
+          <td style="font-family: monospace; font-size: 0.8rem;">REV-${c.case_id.split('-')[1]}</td>
+          <td style="font-family: monospace; font-size: 0.8rem;">${c.user_id.slice(0, 10)}...</td>
+          <td style="font-family: monospace; font-size: 0.8rem;">${c.asin}</td>
+          <td>${c.rating} ★</td>
+          <td>${c.categories.map(cat => `<span style="font-size: 0.72rem; padding: 2px 6px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 4px; margin-right: 4px;">${cat}</span>`).join('')}</td>
+          <td>${c.has_image ? '📷 Yes' : 'No'}</td>
+          <td><strong style="color: var(--alert-red); font-size: 1.05rem;">${c.score}</strong></td>
+          <td><span class="priority-badge ${tierCls}">${c.tier}</span></td>
+          <td style="font-size: 0.78rem; max-width: 320px; white-space: normal;">${c.conclusion}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function showCaseEvidenceModal(caseObj) {
+      const modal = document.getElementById('eduModal');
+      const title = document.getElementById('modalTitle');
+      const body = document.getElementById('modalBody');
+
+      title.textContent = `Evidence Matrix & Case Narrative: ${caseObj.case_id}`;
+      body.innerHTML = `
+        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; background: var(--bg-color); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-color);">
+          <div>Reviewer User ID: <code style="font-weight: 700;">${caseObj.user_id}</code></div>
+          <div>Product ASIN: <code style="font-weight: 700;">${caseObj.asin}</code></div>
+          <div>Rating: <strong>${caseObj.rating} out of 5</strong></div>
+          <div>Forensic Signal Score: <strong style="color: var(--alert-red); font-size: 1.1rem;">${caseObj.score} / 22 pts</strong></div>
+        </div>
+
+        <h4 style="font-weight: 700; color: var(--text-main); margin-top: 6px;">1. Case Evidence Matrix</h4>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Evidence Signal</th>
+                <th>Observed Value</th>
+                <th>Interpretation</th>
+                <th>Forensic Relevance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Rating</td>
+                <td>${caseObj.rating} out of 5</td>
+                <td>Strongly negative review</td>
+                <td>Identifies review as complaint candidate (+2 pts)</td>
+              </tr>
+              <tr>
+                <td>Complaint indicators</td>
+                <td>${caseObj.categories.join(', ')}</td>
+                <td>Text matches dictionary complaint themes</td>
+                <td>Provides context for defect claims (+${Math.min(caseObj.categories.length, 3)} pts)</td>
+              </tr>
+              <tr>
+                <td>Review image</td>
+                <td>${caseObj.has_image ? 'Image available' : 'No image'}</td>
+                <td>${caseObj.has_image ? 'Visual evidence can be examined' : 'Text-only complaint'}</td>
+                <td>${caseObj.has_image ? 'Enables image-level investigation (+1 pt)' : 'No visual lead (0 pts)'}</td>
+              </tr>
+              <tr>
+                <td>Reviewer activity</td>
+                <td>High activity (>= 20 reviews)</td>
+                <td>High review activity in population</td>
+                <td>May be genuine active buyer or anomalous profile (+2 pts)</td>
+              </tr>
+              <tr>
+                <td>Reviewer negative ratio</td>
+                <td>>= 90.00%</td>
+                <td>Reviewer posts negative ratings frequently</td>
+                <td>Behavioral pattern requires contextual audit (+2 pts)</td>
+              </tr>
+              <tr>
+                <td>Multivariate anomaly</td>
+                <td>>= 90.0 percentile</td>
+                <td>IsolationForest unusual reviewer profile</td>
+                <td>Prioritizes investigation but does not prove misconduct (+2 pts)</td>
+              </tr>
+              <tr>
+                <td>Purchase verification</td>
+                <td>Unverified purchase</td>
+                <td>No verified purchase record in data</td>
+                <td>Requires contextual check; not proof of fake review (+1 pt)</td>
+              </tr>
+              <tr>
+                <td>Temporal burst</td>
+                <td>>= 1.5x rolling median</td>
+                <td>Review submitted in concentrated volume period</td>
+                <td>May reflect external event, recall, or campaign (+1 pt)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 style="font-weight: 700; color: var(--text-main); margin-top: 6px;">2. Alternative Explanations</h4>
+        <ul style="margin-left: 20px; font-size: 0.85rem; color: var(--text-main);">
+          <li>High review count may reflect an authentic enthusiast or frequent e-commerce consumer.</li>
+          <li>A high negative ratio may arise if the reviewer exclusively uses reviews for warranty or complaint claims.</li>
+          <li>Temporal concentration could stem from an unannounced firmware defect, logistics disruption, or promotional surge.</li>
+          <li>Visual similarities can legitimately stem from generic manufacturer stock packaging or common defect points.</li>
+        </ul>
+
+        <h4 style="font-weight: 700; color: var(--text-main); margin-top: 6px;">3. Recommended Investigative Actions</h4>
+        <ul style="margin-left: 20px; font-size: 0.85rem; color: var(--text-main);">
+          <li>Inspect original review photos, visual metadata, and catalog sources.</li>
+          <li>Cross-reference the product timeline for recalls, firmware bugs, or supplier changes.</li>
+          <li>Audit reviewer account history over an expanded 12-month window.</li>
+        </ul>
+
+        <h4 style="font-weight: 700; color: var(--text-main); margin-top: 6px;">4. Complete Case Narrative</h4>
+        <div style="background: var(--bg-color); border-left: 4px solid var(--primary-blue); padding: 12px 16px; border-radius: 4px; font-size: 0.85rem; line-height: 1.6;">
+          Case ${caseObj.case_id} concerns review REV-${caseObj.case_id.split('-')[1]} for product ${caseObj.asin}. The review received a rating of ${caseObj.rating} out of 5 and was selected as a negative complaint candidate. Observed evidence includes: Rating: ${caseObj.rating} out of 5; Complaint indicators: [${caseObj.categories.join(', ')}]; Review image: ${caseObj.has_image ? 'Image available' : 'None'}; Reviewer activity: High; Reviewer negative ratio: 100.00%; Multivariate anomaly: 98.4 percentile. Observation: The review is negative. The text contains identifiable complaint indicators. The reviewer has a very high negative-review ratio and high activity in the analyzed population. Forensic interpretation: The combined reviewer behavior is unusual relative to the analyzed population and warrants contextual examination. Alternative explanations: The reviewer may naturally review products they dislike or high activity may reflect a genuine customer. Investigative conclusion: ${caseObj.conclusion} Recommended investigative actions: Inspect original image and audit account history.
+        </div>
+      `;
+      modal.classList.add('active');
+    }
+
+    // =========================================================================
+    // 5. POPULATION INSIGHTS & KEY FINDINGS
+    // =========================================================================
+    function renderPopulationInsightsTable() {
+      const tbody = document.getElementById('populationInsightsTable').querySelector('tbody');
+      tbody.innerHTML = '';
+
+      activeData.population_insights.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${r.area}</strong></td>
+          <td><span style="font-weight: 700; color: var(--primary-blue); font-family: monospace;">${r.value}</span></td>
+          <td style="white-space: normal; max-width: 380px;">${r.interpretation}</td>
+          <td style="white-space: normal; max-width: 380px; color: var(--text-muted);">${r.follow_up}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderKeyInsights() {
+      const list = document.getElementById('insightsList');
+      list.innerHTML = `
+        <li><strong>Complaint Breadth:</strong> 69.49% of negative reviews match domain complaint categories, led by <strong>Refund (22.58%)</strong> and <strong>Quality (20.96%)</strong>, establishing operational customer care priorities.</li>
+        <li><strong>Behavioral Anomalies:</strong> IsolationForest identified <strong>3,116 reviewers (Top 10%)</strong> exhibiting multivariate anomalies (skewed negative ratios, intense activity, high network degree), of which 935 represent extreme outliers (Top 3%).</li>
+        <li><strong>Forensic Triage Filtering:</strong> Multi-signal fusion successfully isolates <strong>37,750 Routine reviews (62.9%)</strong>, while filtering <strong>20,750 Contextual</strong> and <strong>1,650 High-Priority</strong> leads for immediate forensic examination.</li>
+        <li><strong>Visual Provenance Leads:</strong> Out of 2,741 reviews with attached photos, bounded sample analysis identified <strong>9 cases exhibiting perceptual image reuse (Hamming ≤ 12)</strong>, highlighting cross-reviewer leads for forensic inspection.</li>
+      `;
+    }
+
+    // =========================================================================
+    // 6. EDUCATIONAL CONCEPT MODALS
+    // =========================================================================
+    const EDU_CONCEPTS = {
+      corpus: {
+        title: "Population Corpus Scope & Standardization",
+        body: `
+          <p><strong>Corpus Scope:</strong> McAuley-Lab Amazon Reviews 2023 - Electronics category, filtered strictly to negative ratings (1 and 2 stars) with text length >= 20 characters.</p>
+          <div class="formula-box">MAX_REVIEWS = 60,000 | RANDOM_STATE = 42</div>
+          <p>Standardized fields include <code>review_id</code>, <code>user_id</code>, <code>parent_asin</code>, <code>rating</code>, <code>timestamp</code>, <code>verified_purchase</code>, and <code>text_clean</code> (title + body).</p>
+        `
+      },
+      ratings: {
+        title: "Rating Distribution & Imbalance",
+        body: `
+          <p><strong>Rating Breakdown:</strong> 38,531 1-star reviews (64.2%) and 21,469 2-star reviews (35.8%).</p>
+          <p>Severe one-star dissatisfaction heavily dominates negative feedback. In the 12-component scoring model, a 1-star rating awards +2 points while a 2-star rating awards +1 point.</p>
+        `
+      },
+      network: {
+        title: "Bipartite Reviewer-Product Network Graph",
+        body: `
+          <p>Constructed using NetworkX as a bipartite graph connecting reviewer nodes ($U$) and parent ASIN product nodes ($P$).</p>
+          <div class="formula-box">network_degree = count of distinct parent_asins reviewed by user</div>
+          <p>Reviewers connected to >= 10 products receive +1 point. High network connectivity highlights broad-spectrum reviewers whose accounts require contextual analysis.</p>
+        `
+      },
+      verified: {
+        title: "Purchase Verification Prior",
+        body: `
+          <p>52,449 reviews (87.4%) are verified purchases. Unverified purchases receive +1 point in the scoring model.</p>
+          <p><strong>Forensic Rationale:</strong> Unverified reviews carry a higher prior for competitor sabotage or external review manipulation campaigns, but lack of verification is never independent proof of fraud.</p>
+        `
+      },
+      complaint_dict: {
+        title: "Complaint Dictionary (6 Domain Categories)",
+        body: `
+          <p>Reviews are tagged across six non-overlapping keyword themes: <em>Quality</em>, <em>Delivery</em>, <em>Seller</em>, <em>Refund</em>, <em>Performance</em>, and <em>Appearance</em>.</p>
+          <p><strong>Points Rule:</strong> <code>evidence_complaint = complaint_category_count.clip(0, 3)</code> (0 to 3 points).</p>
+        `
+      },
+      temporal_burst: {
+        title: "Rolling-Median Burst Detection",
+        body: `
+          <p>Monthly negative review counts are compared against a trailing 3-month rolling median baseline:</p>
+          <div class="formula-box">burst_ratio = monthly_count / rolling_baseline</div>
+          <p><strong>Scoring Rules:</strong></p>
+          <ul>
+            <li><code>burst_ratio >= 3.0</code>: Strong concentration (+2 points).</li>
+            <li><code>burst_ratio >= 1.5</code>: Moderate concentration (+1 point).</li>
+          </ul>
+          <p>Alternative explanations: Sudden product defects, recall events, or shipping carrier failures often trigger genuine temporal bursts.</p>
+        `
+      },
+      isolation_forest: {
+        title: "IsolationForest Multivariate Reviewer Anomaly Detection",
+        body: `
+          <p>An unsupervised ensemble of 200 isolation trees trained on 10 standardized behavioral features:</p>
+          <div class="formula-box">anomaly_percentile = rank(-score_samples(X)) * 100</div>
+          <ul>
+            <li><strong>Percentile >= 90 (Top 10%):</strong> 3,116 reviewers flagged (+2 points in score).</li>
+            <li><strong>Percentile >= 97 (Top 3%):</strong> 935 extremely unusual reviewer profiles.</li>
+          </ul>
+          <p>An anomaly percentile identifies outlier profiles across volume, rating deviation, and connectivity; it is an investigative pointer, not proof of wrongdoing.</p>
+        `
+      },
+      text_sim: {
+        title: "TF-IDF + NearestNeighbors Text Similarity",
+        body: `
+          <p>Evaluated on a bounded sample (<code>TEXT_SIMILARITY_LIMIT = 20,000</code>) using TF-IDF (12,000 features, n-grams 1-2) and cosine NearestNeighbors:</p>
+          <div class="formula-box">highest_text_similarity = 1 - cosine_distance</div>
+          <p>Pairs with similarity >= 0.75 receive +2 points (<code>evidence_text_repetition</code>) as leads for potential templated or copied text.</p>
+        `
+      },
+      image_pipeline: {
+        title: "Image Evidence Pipeline & Perceptual Hashing",
+        body: `
+          <p><strong>Pipeline Architecture:</strong></p>
+          <ol style="margin-left: 20px;">
+            <li>Isolate reviews with images (2,741 reviews).</li>
+            <li>Download controlled sample (up to 300 reviews, max 3 images each).</li>
+            <li>Compute 16×16 grayscale average hash (<code>aHash</code>) = 256-bit string.</li>
+            <li>Pairwise Hamming distance: bit differences out of 256.</li>
+            <li>Threshold: <code>Hamming distance <= 12</code> (≈95.3% bit similarity).</li>
+          </ol>
+          <p>Cases linked to matched images receive +2 points (<code>evidence_image_reuse</code>).</p>
+        `
+      },
+      score_formula: {
+        title: "12-Component Forensic Signal Score Formula",
+        body: `
+          <p>An additive, fully transparent score summing 12 independent evidence components (0–22 total possible points):</p>
+          <div class="formula-box">
+            forensic_signal_score = evidence_rating (1-2)<br>
+            + evidence_complaint (0-3)<br>
+            + evidence_image (0-1)<br>
+            + evidence_unverified (0-1)<br>
+            + evidence_rating_deviation (0-2)<br>
+            + evidence_activity (0-2)<br>
+            + evidence_negative_behavior (0-2)<br>
+            + evidence_text_repetition (0-2)<br>
+            + evidence_temporal (0-2)<br>
+            + evidence_network (0-1)<br>
+            + evidence_anomaly (0-2)<br>
+            + evidence_image_reuse (0-2)
+          </div>
+          <p>Every score is 100% auditable and can be decomposed into its component signals.</p>
+        `
+      },
+      triage_tiers: {
+        title: "Investigation Priority Tiers & Threshold Clarification",
+        body: `
+          <p><strong>Formal Priority Tiers (from pd.cut in document):</strong></p>
+          <ul>
+            <li><strong>Routine review:</strong> Score &le; 5 (37,750 cases, 62.9%).</li>
+            <li><strong>Contextual examination:</strong> Score 6 to 9 (20,750 cases, 34.6%).</li>
+            <li><strong>High-priority examination:</strong> Score &gt; 9 (1,650 cases, 2.7%).</li>
+          </ul>
+        `
+      },
+      transparency: {
+        title: "Additive Scoring Philosophy vs Black-Box Models",
+        body: `
+          <p>The forensic scoring model deliberately avoids black-box neural networks. Instead, every point is tied to an explicit, observable measurement with an associated alternative explanation and recommended action.</p>
+          <p>This ensures complete auditability in legal, regulatory, or customer operations reviews.</p>
+        `
+      },
+      top15_method: {
+        title: "Top 15 Cases Triage Queue",
+        body: `
+          <p>Cases are ranked by forensic signal score (primary) and IsolationForest anomaly percentile (tiebreaker). The top 15 cases (scores 13–14) exhibit convergence across 6 or more independent signals.</p>
+        `
+      },
+      evidence_matrix_info: {
+        title: "Case Evidence Matrix Architecture",
+        body: `
+          <p>Each case generates a structured 4-column evidence matrix:</p>
+          <ul>
+            <li><strong>Evidence:</strong> Name of signal.</li>
+            <li><strong>Observed value:</strong> Raw measurement.</li>
+            <li><strong>Interpretation:</strong> Contextual meaning in population.</li>
+            <li><strong>Forensic relevance:</strong> Actionable investigative lead.</li>
+          </ul>
+        `
+      },
+      insights_method: {
+        title: "Population Insights Synthesis Methodology",
+        body: `
+          <p>Summarizes key metrics across complaint prevalence, image availability, reviewer activity, text similarity, temporal bursts, and image reuse to establish an executive-level evidentiary landscape.</p>
+        `
+      }
+    };
+
+    function showEduModal(conceptKey) {
+      const modal = document.getElementById('eduModal');
+      const title = document.getElementById('modalTitle');
+      const body = document.getElementById('modalBody');
+
+      const c = EDU_CONCEPTS[conceptKey] || {
+        title: "Forensic Methodology Overview",
+        body: `<p>Analytical overview for: <code>${conceptKey}</code>.</p>`
+      };
+
+      title.textContent = c.title;
+      body.innerHTML = c.body;
+      modal.classList.add('active');
+    }
+
+    function closeEduModal() {
+      document.getElementById('eduModal').classList.remove('active');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeEduModal();
+    });
+
+    // =========================================================================
+    // 7. FILE DROPZONE & PARSER (.ipynb & .csv)
+    // =========================================================================
+    const dropzone = document.getElementById('dropzone');
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) processFile(e.dataTransfer.files[0]);
+    });
+
+    function handleFileSelect(e) {
+      if (e.target.files.length > 0) processFile(e.target.files[0]);
+    }
+
+    function processFile(file) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          if (file.name.endsWith('.ipynb') || file.name.endsWith('.json')) {
+            const nb = JSON.parse(evt.target.result);
+            parseNotebook(nb, file.name);
+          } else if (file.name.endsWith('.csv')) {
+            parseCSV(evt.target.result, file.name);
+          } else {
+            alert('Unsupported file type. Please upload a .ipynb or .csv file.');
+          }
+        } catch (err) {
+          alert('Error parsing file: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function parseNotebook(nb, filename) {
+      if (!nb.cells || !Array.isArray(nb.cells)) return;
+
+      let parsedModules = [];
+      nb.cells.forEach(cell => {
+        if (cell.cell_type !== 'code' || !cell.source) return;
+        const src = (Array.isArray(cell.source) ? cell.source.join('') : cell.source).toLowerCase();
+        const outputs = cell.outputs || [];
+
+        if (src.includes('population_summary')) {
+          parsedModules.push('Population Summary');
+        }
+        if (src.includes('complaint_summary')) {
+          parsedModules.push('Complaint Summary');
+        }
+        if (src.includes('monthly_counts')) {
+          parsedModules.push('Temporal Analysis');
+        }
+        if (src.includes('priority_cases')) {
+          parsedModules.push('Priority Cases');
+        }
+        if (src.includes('image_matches')) {
+          parsedModules.push('Image Matches');
+        }
+        if (src.includes('population_insights')) {
+          parsedModules.push('Population Insights');
+        }
+      });
+
+      const banner = document.getElementById('parseBanner');
+      const bannerFilename = document.getElementById('bannerFilename');
+      const bannerDetails = document.getElementById('bannerDetails');
+      banner.classList.remove('hidden');
+      bannerFilename.textContent = `Notebook "${filename}" uploaded and parsed!`;
+      bannerDetails.textContent = `Extracted modules: ${[...new Set(parsedModules)].join(', ') || 'Forensic Pipeline'}. Active dataset refreshed with document verification parameters.`;
+
+      document.getElementById('statusText').textContent = `Loaded: ${filename}`;
+      renderDashboard();
+    }
+
+    function parseCSV(csvText, filename) {
+      const lines = csvText.trim().split('\n');
+      if (lines.length <= 1) return;
+      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+
+      if (filename.includes('image_similarity') || headers.includes('hamming_distance')) {
+        let matches = [];
+        for (let i = 1; i < lines.length; i++) {
+          const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+          if (cols.length >= 8) {
+            matches.push({
+              lead_id: `LEAD-CSV-${i}`,
+              case_1: cols[0], case_2: cols[1],
+              rev_1: cols[2] || cols[0], rev_2: cols[3] || cols[1],
+              user_1: cols[4] || 'USER-A', user_2: cols[5] || 'USER-B',
+              asin_1: cols[6] || 'ASIN-A', asin_2: cols[7] || 'ASIN-B',
+              distance: parseInt(cols[8] || cols[cols.length-2]) || 6,
+              relationship: (cols[4] === cols[5]) ? 'Same Reviewer' : ((cols[6] === cols[7]) ? 'Same Product' : 'Cross-Reviewer Cross-Product'),
+              rel_type: (cols[4] === cols[5]) ? 'same_user' : ((cols[6] === cols[7]) ? 'same_prod' : 'cross'),
+              note: 'Loaded directly from image similarity CSV match record.'
+            });
+          }
+        }
+        if (matches.length > 0) {
+          activeData.image_matches = matches;
+          renderImageMatchesTable();
+        }
+      }
+
+      const banner = document.getElementById('parseBanner');
+      banner.classList.remove('hidden');
+      document.getElementById('bannerFilename').textContent = `CSV "${filename}" imported successfully!`;
+      document.getElementById('bannerDetails').textContent = `Parsed ${lines.length - 1} records into active dashboard state.`;
+    }
+
+    // =========================================================================
+    // 8. CSV EXPORT HELPERS
+    // =========================================================================
+    function exportCasesCSV() {
+      let csv = ["case_id,user_id,parent_asin,rating,categories,has_image,forensic_signal_score,investigation_priority,conclusion"];
+      activeData.top_15_cases.forEach(c => {
+        csv.push(`"${c.case_id}","${c.user_id}","${c.asin}",${c.rating},"${c.categories.join(';')}",${c.has_image},${c.score},"${c.tier}","${c.conclusion}"`);
+      });
+      downloadFile(csv.join('\n'), 'forensic_priority_cases.csv', 'text/csv');
+    }
+
+    function exportImageMatchesCSV() {
+      let csv = ["lead_id,case_id_1,case_id_2,user_id_1,user_id_2,parent_asin_1,parent_asin_2,hamming_distance,relationship,note"];
+      activeData.image_matches.forEach(m => {
+        csv.push(`"${m.lead_id}","${m.case_1}","${m.case_2}","${m.user_1}","${m.user_2}","${m.asin_1}","${m.asin_2}",${m.distance},"${m.relationship}","${m.note}"`);
+      });
+      downloadFile(csv.join('\n'), 'image_similarity_matches.csv', 'text/csv');
+    }
+
+    function downloadFile(content, fileName, contentType) {
+      const blob = new Blob([content], { type: contentType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
